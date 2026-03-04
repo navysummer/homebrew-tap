@@ -1,8 +1,8 @@
 class NsSandbox < Formula
   desc "Cross-platform command-line ns-sandbox"
   homepage "https://github.com/navysummer/ns-sandbox"
-  license "MIT"
   version "0.0.1"
+  license "MIT"
 
   on_macos do
     on_intel do
@@ -20,6 +20,6 @@ class NsSandbox < Formula
   end
 
   test do
-    system "#{bin}/ns-sandbox", "--version"
+    system "bin/ns-sandbox", "--version"
   end
 end
