@@ -70,12 +70,10 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
           
-          # Create a unique branch name with timestamp to avoid conflicts
-          BRANCH_NAME="update-to-version-${{ github.ref_name }}-$(date +%s)"
-          
-          git checkout -b "$BRANCH_NAME"
+          # Pull latest main, then commit and push
+          git pull --rebase origin main
           
           git add Formula/ns-sandbox.rb
           git commit -m "Update formula.rb to version ${{ github.ref_name }}" || true
           
-          git push -u origin "$BRANCH_NAME"
+          git push
