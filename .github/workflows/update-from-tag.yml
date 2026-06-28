@@ -2,7 +2,7 @@ name: update formula when release
 
 on:
   push:
-    tags:
+    branches:
       - 'v*'
 
 permissions:
@@ -44,20 +44,13 @@ jobs:
           echo "sha256_x86_64=$X86_64_CHECKSUM" >> "$GITHUB_OUTPUT"
           echo "sha256_arm64=$ARM64_CHECKSUM" >> "$GITHUB_OUTPUT"
 
-      - name: Update formula.rb with new version and checksums
+      - name: Update sha256 checksums
         run: |
           FILE="Formula/ns-sandbox.rb"
           
           # Get computed checksums
           X86_64_CHECKSUM="${{ steps.checksums.outputs.sha256_x86_64 }}"
           ARM64_CHECKSUM="${{ steps.checksums.outputs.sha256_arm64 }}"
-          
-          # Get version without 'v'
-          VERSION="${{ github.ref_name }}"
-          VERSION=${VERSION#v}
-          
-          # Update version: replace any existing version string with new version
-          sed -i "s/version \".*\"/version \"$VERSION\"/" "$FILE"
           
           # Update x86_64 sha256: locate the block containing 'x86_64-apple-darwin' and replace sha256
           sed -i "/x86_64-apple-darwin/,/sha256/s/sha256 \".*\"/sha256 \"$X86_64_CHECKSUM\"/" "$FILE"
