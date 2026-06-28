@@ -17,28 +17,36 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Get version from tag
+      - name: Get version from tag and increment
         id: get_version
         run: |
           VERSION_WITH_V="${{ github.ref_name }}"
           VERSION=${VERSION_WITH_V#v}
+          # Increment patch version (e.g., 0.0.1 → 0.0.2)
+          MAJOR=$(echo "$VERSION" | cut -d. -f1)
+          MINOR=$(echo "$VERSION" | cut -d. -f2)
+          PATCH=$(echo "$VERSION" | cut -d. -f3)
+          NEXT_PATCH=$((PATCH + 1))
+          NEXT_VERSION="$MAJOR.$MINOR.$NEXT_PATCH"
+          NEXT_VERSION_WITH_V="v$NEXT_VERSION"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "version_with_v=$VERSION_WITH_V" >> "$GITHUB_OUTPUT"
+          echo "next_version=$NEXT_VERSION" >> "$GITHUB_OUTPUT"
+          echo "next_version_with_v=$NEXT_VERSION_WITH_V" >> "$GITHUB_OUTPUT"
 
       - name: Download release files and compute checksums
         id: checksums
         run: |
-          VERSION_WITH_V="${{ github.ref_name }}"
-          VERSION="${VERSION_WITH_V#v}"
+          NEXT_VERSION_WITH_V="${{ steps.get_version.outputs.next_version_with_v }}"
           
-          # Download x86_64 (ns-sandbox-v0.0.2-x86_64-apple-darwin.tar.gz)
-          X86_64_FILE="ns-sandbox-$VERSION_WITH_V-x86_64-apple-darwin.tar.gz"
-          wget -O "$X86_64_FILE" "https://github.com/navysummer/ns-sandbox/releases/download/$VERSION_WITH_V/$X86_64_FILE"
+          # Download x86_64
+          X86_64_FILE="ns-sandbox-$NEXT_VERSION_WITH_V-x86_64-apple-darwin.tar.gz"
+          wget -O "$X86_64_FILE" "https://github.com/navysummer/ns-sandbox/releases/download/$NEXT_VERSION_WITH_V/$X86_64_FILE"
           X86_64_CHECKSUM=$(sha256sum "$X86_64_FILE" | cut -d ' ' -f 1)
           
-          # Download arm64 (ns-sandbox-v0.0.2-aarch64-apple-darwin.tar.gz)
-          ARM64_FILE="ns-sandbox-$VERSION_WITH_V-aarch64-apple-darwin.tar.gz"
-          wget -O "$ARM64_FILE" "https://github.com/navysummer/ns-sandbox/releases/download/$VERSION_WITH_V/$ARM64_FILE"
+          # Download arm64
+          ARM64_FILE="ns-sandbox-$NEXT_VERSION_WITH_V-aarch64-apple-darwin.tar.gz"
+          wget -O "$ARM64_FILE" "https://github.com/navysummer/ns-sandbox/releases/download/$NEXT_VERSION_WITH_V/$ARM64_FILE"
           ARM64_CHECKSUM=$(sha256sum "$ARM64_FILE" | cut -d ' ' -f 1)
           
           echo "sha256_x86_64=$X86_64_CHECKSUM" >> "$GITHUB_OUTPUT"
@@ -48,16 +56,14 @@ jobs:
         run: |
           FILE="Formula/ns-sandbox.rb"
           
-          # Get tag version without 'v' (e.g., v0.0.2 → 0.0.2)
-          VERSION="${{ github.ref_name }}"
-          VERSION=${VERSION#v}
+          NEXT_VERSION="${{ steps.get_version.outputs.next_version }}"
           
           # Get computed checksums
           X86_64_CHECKSUM="${{ steps.checksums.outputs.sha256_x86_64 }}"
           ARM64_CHECKSUM="${{ steps.checksums.outputs.sha256_arm64 }}"
           
-          # Update version
-          sed -i "s/version \".*\"/version \"$VERSION\"/" "$FILE"
+          # Update version to next_version (tag + 1)
+          sed -i "s/version \".*\"/version \"$NEXT_VERSION\"/" "$FILE"
           
           # Update x86_64 sha256
           sed -i "/x86_64-apple-darwin/,/sha256/s/sha256 \".*\"/sha256 \"$X86_64_CHECKSUM\"/" "$FILE"
@@ -70,10 +76,12 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
           
+          NEXT_VERSION="${{ steps.get_version.outputs.next_version }}"
+          
           # Pull latest main, then commit and push
           git pull --rebase origin main
           
           git add Formula/ns-sandbox.rb
-          git commit -m "Update formula.rb to version ${{ github.ref_name }}" || true
+          git commit -m "Update formula.rb to version $NEXT_VERSION" || true
           
           git push
