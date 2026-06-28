@@ -61,18 +61,14 @@ jobs:
 
       - name: Commit and push changes
         run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
           
-          # Checkout to the main branch if we're not on one
-          if git branch --show-current > /dev/null 2>&1; then
-            BRANCH=$(git branch --show-current)
-          else
-            git checkout -b "update-to-version-${{ steps.get_version.outputs.version }}"
-            BRANCH="update-to-version-${{ steps.get_version.outputs.version }}"
-          fi
+          # Create a branch for the changes
+          BRANCH_NAME="update-to-version-${{ steps.get_version.outputs.version }}"
+          git checkout -B "$BRANCH_NAME"
           
           git add Formula/ns-sandbox.rb
           git commit -m "Update formula.rb to version ${{ steps.get_version.outputs.version }}" || exit 0
           
-          git push origin "$BRANCH"
+          git push -u origin "$BRANCH_NAME"
