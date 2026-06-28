@@ -18,33 +18,34 @@ jobs:
       - name: Get version from tag
         id: get_version
         run: |
-          VERSION=$(echo ${{ github.ref_name }} | sed 's/^v//')
+          VERSION_WITH_V="${{ github.ref_name }}"
+          VERSION=${VERSION_WITH_V#v}
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "version_with_v=$VERSION_WITH_V" >> "$GITHUB_OUTPUT"
 
       - name: Download macOS Intel (x86_64) and compute sha256
         id: sha256_x86_64
         run: |
-          VERSION="${{ github.ref_name }}"
-          VERSION=${VERSION#v}
-          URL="https://github.com/navysummer/ns-sandbox/releases/download/$VERSION/ns-sandbox-$VERSION-x86_64-apple-darwin.tar.gz"
-          wget -O "ns-sandbox-$VERSION-x86_64-apple-darwin.tar.gz" "$URL"
-          SHA256=$(sha256sum "ns-sandbox-$VERSION-x86_64-apple-darwin.tar.gz" | cut -d ' ' -f 1)
+          VERSION="${{ steps.get_version.outputs.version }}"
+          VERSION_WITH_V="${{ steps.get_version.outputs.version_with_v }}"
+          URL="https://github.com/navysummer/ns-sandbox/releases/download/$VERSION_WITH_V/ns-sandbox-$VERSION_WITH_V-x86_64-apple-darwin.tar.gz"
+          wget -O "ns-sandbox-$VERSION_WITH_V-x86_64-apple-darwin.tar.gz" "$URL"
+          SHA256=$(sha256sum "ns-sandbox-$VERSION_WITH_V-x86_64-apple-darwin.tar.gz" | cut -d ' ' -f 1)
           echo "sha256_x86_64=$SHA256" >> "$GITHUB_OUTPUT"
 
       - name: Download macOS Arm (arm64) and compute sha256
         id: sha256_arm64
         run: |
-          VERSION="${{ github.ref_name }}"
-          VERSION=${VERSION#v}
-          URL="https://github.com/navysummer/ns-sandbox/releases/download/$VERSION/ns-sandbox-$VERSION-aarch64-apple-darwin.tar.gz"
-          wget -O "ns-sandbox-$VERSION-aarch64-apple-darwin.tar.gz" "$URL"
-          SHA256=$(sha256sum "ns-sandbox-$VERSION-aarch64-apple-darwin.tar.gz" | cut -d ' ' -f 1)
+          VERSION="${{ steps.get_version.outputs.version }}"
+          VERSION_WITH_V="${{ steps.get_version.outputs.version_with_v }}"
+          URL="https://github.com/navysummer/ns-sandbox/releases/download/$VERSION_WITH_V/ns-sandbox-$VERSION_WITH_V-aarch64-apple-darwin.tar.gz"
+          wget -O "ns-sandbox-$VERSION_WITH_V-aarch64-apple-darwin.tar.gz" "$URL"
+          SHA256=$(sha256sum "ns-sandbox-$VERSION_WITH_V-aarch64-apple-darwin.tar.gz" | cut -d ' ' -f 1)
           echo "sha256_arm64=$SHA256" >> "$GITHUB_OUTPUT"
 
       - name: Update formula.rb
         run: |
-          VERSION="${{ github.ref_name }}"
-          VERSION=${VERSION#v}
+          VERSION="${{ steps.get_version.outputs.version }}"
           FILE="Formula/ns-sandbox.rb"
           
           # Update version number
