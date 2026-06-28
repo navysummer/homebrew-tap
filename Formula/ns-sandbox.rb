@@ -7,11 +7,11 @@ class NsSandbox < Formula
   on_macos do
     on_intel do
       url "https://github.com/navysummer/ns-sandbox/releases/download/v#{version}/ns-sandbox-v#{version}-x86_64-apple-darwin.tar.gz"
-      sha256 "9c37892e94909f6bd39a79fd3bc4f785b31be9d1bc3691bc23ba06ab7a6beb96"
+      sha256 "0cf05f734f1e2041ab506a011eb937484ac52166b862e361ac6df3c70453ef45"
     end
     on_arm do
       url "https://github.com/navysummer/ns-sandbox/releases/download/v#{version}/ns-sandbox-v#{version}-aarch64-apple-darwin.tar.gz"
-      sha256 "5a31dafa76824e5725751793317e2b9a8643b2760eb656c8e6d9e1e5b8715222"
+      sha256 "175beaf56b5ca171928665cd176fc6f27fd76672cad023eea0336c4406997de8"
     end
   end
 
