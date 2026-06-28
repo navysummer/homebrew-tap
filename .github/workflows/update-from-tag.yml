@@ -78,10 +78,11 @@ jobs:
           
           NEXT_VERSION="${{ steps.get_version.outputs.next_version }}"
           
-          # Pull latest main, then commit and push
-          git pull --rebase origin main
-          
           git add Formula/ns-sandbox.rb
+          git stash
+          git pull --rebase origin main
+          git stash pop
+          
           git commit -m "Update formula.rb to version $NEXT_VERSION" || true
           
           git push
